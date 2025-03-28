@@ -26,13 +26,13 @@ func main() {
 	isPrimeArr := make([]bool, 432)
 
 	//concurrently check prime numbers
-	for i := range 432 {
+	for iterationNumber := range 432 {
 		primeWait.Add(1)
-		go func() {
+		go func(routineInput int) {
 			defer primeWait.Done()
-			isPrimeArr[i] = prime(i)
-			//fmt.Println(isPrimeArr[i])
-		}()
+			isPrimeArr[routineInput] = prime(routineInput)
+			//fmt.Println(isPrimeArr[iterationNumber])
+		}(iterationNumber)
 	}
 
 	//wait for all concurrent threads to complete
