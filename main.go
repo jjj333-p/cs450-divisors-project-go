@@ -59,21 +59,35 @@ func main() {
 		factorizationWait := new(sync.WaitGroup)
 		//make exp the prime factorization of n!/k!
 		for i := 2; i <= n; i++ {
+
+			//n!/(k!(n-k)!)
+			var runs int32 = 1
+			if i <= (n - k) {
+				runs = 2
+			}
+
 			if isPrimeArr[i] {
-				exp[i].Add(1)
+				exp[i].Add(runs)
 			} else { //need to do the prime factorization of i if it's not prime
 				//factorize in a coroutine
 				factorizationWait.Add(1)
-				go func(ncurr int) {
-					h := 2
-					for ncurr != 1 {
-						if isPrimeArr[h] && ncurr%h == 0 {
-							exp[h].Add(-1)
-							ncurr /= h
-						} else {
-							h++
+				go func(n int) {
+					defer factorizationWait.Done()
+
+					//n!/(k!(n-k)!)
+					for range runs {
+						ncurr := n
+						h := 2
+						for ncurr != 1 {
+							if isPrimeArr[h] && ncurr%h == 0 {
+								exp[h].Add(-1)
+								ncurr /= h
+							} else {
+								h++
+							}
 						}
 					}
+
 				}(i)
 			}
 		}
