@@ -74,8 +74,8 @@ func main() {
 			go func(passedN int) {
 				defer factorizationWait.Done()
 
-				if isPrimeArr[i] {
-					exp[i].Add(1)
+				if isPrimeArr[passedN] {
+					exp[passedN].Add(1)
 				} else { //need to do the prime factorization of i if it's not prime
 					//first run is passedN!/k!
 					ncurr := passedN
@@ -92,8 +92,8 @@ func main() {
 				}
 
 				divis := func() {
-					if isPrimeArr[i] {
-						exp[i].Add(-1)
+					if isPrimeArr[passedN] {
+						exp[passedN].Add(-1)
 					} else { //need to do the prime factorization of i if it's not prime
 						//second run is passedN!/(k!(passedN-k)!)
 						ncurr := passedN
