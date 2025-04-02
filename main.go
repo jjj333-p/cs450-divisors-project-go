@@ -69,49 +69,62 @@ func main() {
 		//make exp the prime factorization of n!/k!
 		factorizationWait.Add(n - 1)
 		for i := 2; i <= n; i++ {
-			fmt.Println("i", i)
 
-			//n!/(k!(n-k)!)
-			var runs int32 = 1
-			if i <= (n - k) {
-				runs = 2
-			}
+			//just coroutine shit
+			go func(passedN int) {
+				defer factorizationWait.Done()
 
-			if isPrimeArr[i] {
-				exp[i].Add(runs)
-				fmt.Println("exp", exp[i].Load())
-				factorizationWait.Done()
-			} else { //need to do the prime factorization of i if it's not prime
-				//factorize in a coroutine
+				if isPrimeArr[i] {
+					exp[i].Add(1)
+				} else { //need to do the prime factorization of i if it's not prime
+					//first run is passedN!/k!
+					ncurr := passedN
+					h := 2
+					for ncurr != 1 {
+						if isPrimeArr[h] && ncurr%h == 0 {
+							exp[h].Add(1)
+							ncurr /= h
+						} else {
+							h++
+						}
+					}
 
-				go func(n int) {
-					defer factorizationWait.Done()
+				}
 
-					//first run is n!/k!
-					//second run is n!/(k!(n-k)!)
-					for range runs {
-						ncurr := n
+				divis := func() {
+					if isPrimeArr[i] {
+						exp[i].Add(-1)
+					} else { //need to do the prime factorization of i if it's not prime
+						//second run is passedN!/(k!(passedN-k)!)
+						ncurr := passedN
 						h := 2
 						for ncurr != 1 {
 							if isPrimeArr[h] && ncurr%h == 0 {
 								exp[h].Add(-1)
-								fmt.Println("exp", exp[i].Load())
+								//fmt.Println("exp false", exp[i].Load())
 								ncurr /= h
 							} else {
 								h++
 							}
 						}
-					}
 
-				}(i)
-			}
+					}
+				}
+
+				if passedN <= (k) {
+					divis()
+				}
+				if passedN <= (n - k) {
+					divis()
+				}
+			}(i)
 		}
 		//wait for all processing to finish
 		factorizationWait.Wait()
 
 		var res int32 = 1
 		for i := range 432 {
-			res *= exp[i].Load()
+			res *= exp[i].Load() + 1
 		}
 		fmt.Println(res)
 	}
