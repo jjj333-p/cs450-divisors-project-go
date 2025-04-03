@@ -30,13 +30,13 @@ func prime(n int) bool {
 
 func main() {
 	//precache primes
-	isPrimeArr := make([]bool, 432)
+	isPrimeArr := make([]bool, 433)
 
 	//how many threads we'll need to wait for
 	primeWait := new(sync.WaitGroup)
-	primeWait.Add(432)
+	primeWait.Add(433)
 	//concurrently check prime numbers
-	for iterationNumber := range 432 {
+	for iterationNumber := range 433 {
 		//inline concurrent function
 		go func(routineInput int) {
 			//when thread completes, mark thread as completed
@@ -56,10 +56,12 @@ func main() {
 		//parse in text
 		in := scanner.Text()
 		nStr, kStr, _ := strings.Cut(in, " ")
-		n, _ := strconv.Atoi(nStr)
-		k, _ := strconv.Atoi(kStr)
+		n_int, _ := strconv.Atoi(nStr)
+		n := int64(n_int)
+		k_int, _ := strconv.Atoi(kStr)
+		k := int64(k_int)
 
-		exp := make([]atomic.Int32, 432)
+		exp := make([]atomic.Int64, 433)
 		for i := range exp {
 			exp[i].Store(0) // Explicitly initialize to 0
 		}
@@ -67,11 +69,11 @@ func main() {
 		//for any iterations we want to run concurrently
 		factorizationWait := new(sync.WaitGroup)
 		//make exp the prime factorization of n!/k!
-		factorizationWait.Add(n - 1)
-		for i := 2; i <= n; i++ {
+		factorizationWait.Add(int(n - 1))
+		for i := int64(2); i <= n; i++ {
 
 			//just coroutine shit
-			go func(passedN int) {
+			go func(passedN int64) {
 				defer factorizationWait.Done()
 
 				if isPrimeArr[passedN] {
@@ -79,7 +81,7 @@ func main() {
 				} else { //need to do the prime factorization of i if it's not prime
 					//first run is passedN!/k!
 					ncurr := passedN
-					h := 2
+					var h int64 = 2
 					for ncurr != 1 {
 						if isPrimeArr[h] && ncurr%h == 0 {
 							exp[h].Add(1)
@@ -97,7 +99,7 @@ func main() {
 					} else { //need to do the prime factorization of i if it's not prime
 						//second run is passedN!/(k!(passedN-k)!)
 						ncurr := passedN
-						h := 2
+						var h int64 = 2
 						for ncurr != 1 {
 							if isPrimeArr[h] && ncurr%h == 0 {
 								exp[h].Add(-1)
@@ -122,8 +124,8 @@ func main() {
 		//wait for all processing to finish
 		factorizationWait.Wait()
 
-		var res int32 = 1
-		for i := range 432 {
+		var res int64 = 1
+		for i := range 433 {
 			res *= exp[i].Load() + 1
 		}
 		fmt.Println(res)
